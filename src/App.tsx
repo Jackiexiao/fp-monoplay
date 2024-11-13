@@ -5,7 +5,7 @@ import { Player, initialPlayers } from './game/players';
 import DiceRoll from './components/DiceRoll';
 import ChanceCard from './components/ChanceCard';
 import { Card, chanceCards } from './game/cards';
-import { boardSpaces } from './game/board';
+import { boardSpaces, updateSpaceOwner } from './game/board';
 import RulesModal from './components/RulesModal';
 import WinnerModal from './components/WinnerModal';
 import BoardSpace from './components/BoardSpace';
@@ -226,27 +226,41 @@ function App() {
     const space = boardSpaces[position];
     const currentPlayerObj = players[currentPlayer];
     
-    if (space.type === 'property' && space.price && space.owner === null && currentPlayerObj.money >= space.price) {
-      // 使用新的更新函数
-      updateSpaceOwner(position, currentPlayer);
+    // 检查是否可以购买
+    if (
+      space.type === 'property' && 
+      space.price && 
+      space.owner === null && // 确保未被购买
+      currentPlayerObj.money >= space.price
+    ) {
+      // 更新格子所有者
+      boardSpaces[position] = {
+        ...space,
+        owner: currentPlayer
+      };
       
       // 更新玩家状态
       setPlayers(prevPlayers => {
         const newPlayers = [...prevPlayers];
         const player = newPlayers[currentPlayer];
-        player.money -= space.price!;
-        player.properties.push(position);
         
-        // 显示金钱变化
-        showMoneyChange(currentPlayer, -space.price!);
-        showMessage(`🎉 成功购买 ${space.name}！`);
+        // 检查是否已经拥有这个属性
+        if (!player.properties.includes(position)) {
+          player.money -= space.price!;
+          player.properties.push(position);
+          
+          // 显示金钱变化
+          showMoneyChange(currentPlayer, -space.price!);
+          showMessage(`🎉 ${player.name} 成功购买 ${space.name}！`);
+        }
         
         return newPlayers;
       });
-    } else {
-      if (currentPlayerObj.money < (space.price || 0)) {
-        showMessage('💔 资金不足，无法购买！');
-      }
+      
+      // 关闭购买面板
+      setSelectedSpace(null);
+    } else if (currentPlayerObj.money < (space.price || 0)) {
+      showMessage('💔 资金不足，无法购买！');
     }
   };
 
@@ -488,6 +502,11 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
   className = '',
   moneyChange 
 }) => {
+  // 获取玩家拥有的产品信息
+  const getOwnedProperties = () => {
+    return player.properties.map(pos => boardSpaces[pos]);
+  };
+
   return (
     <div className={`${className} transform transition-all duration-300 ${
       isActive ? 'scale-110 z-10' : 'scale-100'
@@ -497,7 +516,7 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
           ? 'bg-white/20 ring-2 ring-purple-400 shadow-lg' 
           : 'bg-white/10 hover:bg-white/15'
       } backdrop-blur-sm transition-all min-w-[160px] sm:min-w-[180px]
-      border border-white/10 hover:border-white/20`}>
+      border border-white/10 hover:border-white/20 relative group`}>
         <div className="flex items-center gap-3">
           <div 
             className={`w-8 h-8 rounded-full shadow-lg border-2 
@@ -517,11 +536,29 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
                 </span>
               )}
             </div>
-            <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5 mt-1">
+            <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5 mt-1 cursor-help">
               <span className="bg-purple-400/20 p-1 rounded">🎮</span>
               <span>{player.properties.length} 个产品</span>
             </div>
           </div>
+        </div>
+
+        {/* 产品信息悬浮提示 */}
+        <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 
+                      bg-gray-900/95 rounded-lg p-3 w-48 z-50 backdrop-blur-sm">
+          <h4 className="text-sm font-medium text-white mb-2">拥有的产品：</h4>
+          {getOwnedProperties().length > 0 ? (
+            <ul className="space-y-1">
+              {getOwnedProperties().map((property, index) => (
+                <li key={index} className="text-xs text-purple-200 flex items-center justify-between">
+                  <span>{property.name}</span>
+                  <span className="text-yellow-400">{property.price} 元</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-gray-400">暂无产品</p>
+          )}
         </div>
       </div>
     </div>

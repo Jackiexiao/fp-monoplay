@@ -2,6 +2,7 @@ import React from 'react';
 import { Player } from '../game/players';
 import { Space } from '../game/board';
 import PlayerToken from './PlayerToken';
+import { DollarSign, Sparkles, AlertCircle } from 'lucide-react';
 
 interface BoardSpaceProps {
   space: Space;
@@ -26,7 +27,6 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
   side,
   onClick 
 }) => {
-  // 根据不同状态返回不同的边框样式
   const getBorderStyle = () => {
     if (isCurrentPosition) return 'border-purple-400 bg-white/10 shadow-lg shadow-purple-400/20 animate-pulse';
     if (isPreviousPosition) return 'border-yellow-400 bg-white/10 shadow-lg shadow-yellow-400/20';
@@ -35,13 +35,58 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
     return 'border-transparent hover:border-white/20 hover:bg-white/10';
   };
 
-  // 添加一个函数来安全地获取所有者的颜色
   const getOwnerColor = () => {
     if (space.owner !== undefined && space.owner !== null && players[space.owner]) {
       return players[space.owner].color;
     }
     return 'transparent';
   };
+
+  const getTypeIndicator = () => {
+    switch (space.type) {
+      case 'property':
+        return {
+          icon: DollarSign,
+          color: 'bg-yellow-500/20 text-yellow-400',
+          label: '投资'
+        };
+      case 'chance':
+        return {
+          icon: Sparkles,
+          color: 'bg-purple-500/20 text-purple-400',
+          label: '机会'
+        };
+      case 'tax':
+        return {
+          icon: AlertCircle,
+          color: 'bg-red-500/20 text-red-400',
+          label: '支出'
+        };
+      case 'special':
+        return {
+          icon: space.icon,
+          color: 'bg-blue-500/20 text-blue-400',
+          label: '特殊'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const typeInfo = getTypeIndicator();
+
+  const getOwnerInfo = () => {
+    if (space.owner !== null && players[space.owner]) {
+      const owner = players[space.owner];
+      return {
+        color: owner.color,
+        name: owner.name
+      };
+    }
+    return null;
+  };
+
+  const ownerInfo = getOwnerInfo();
 
   return (
     <div 
@@ -54,17 +99,29 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         }
         border-2 ${getBorderStyle()}
       `}
-      onClick={() => onClick?.(position)}
+      onClick={() => {
+        if (space.type === 'property' && space.owner === null) {
+          onClick?.(position);
+        }
+      }}
     >
       <div className="absolute top-0.5 left-0.5 text-[10px] text-white/60 bg-black/30 
                     rounded px-1 font-mono">
         {position}
       </div>
 
-      <div className="h-full flex flex-col justify-between">
-        <div className={`text-white/90 font-medium text-xs pt-3
+      {typeInfo && (
+        <div className={`absolute top-0.5 right-0.5 ${typeInfo.color} 
+                      rounded-full text-[10px] px-1.5 py-0.5 flex items-center gap-1`}>
+          <typeInfo.icon className="w-3 h-3" />
+          <span>{typeInfo.label}</span>
+        </div>
+      )}
+
+      <div className="h-full flex flex-col justify-between pt-6">
+        <div className={`text-white/90 font-medium text-xs
           ${side === 'left' || side === 'right' 
-            ? 'line-clamp-2 text-center' 
+            ? 'line-clamp-2 text-center min-h-[2.5em]'
             : 'line-clamp-1 text-center'
           }`}>
           {space.name}
@@ -74,7 +131,7 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
           {space.icon && (
             <space.icon className={`
               ${side === 'left' || side === 'right' 
-                ? 'w-5 h-5 sm:w-6 sm:h-6' 
+                ? 'w-4 h-4 sm:w-5 sm:h-5'
                 : 'w-4 h-4 sm:w-5 sm:h-5'
               } 
               text-white/70
@@ -82,13 +139,13 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
           />
           )}
           {space.price && (
-            <div className="text-yellow-400/90 text-[10px] sm:text-xs font-medium text-center">
-              {space.price}元
+            <div className={`text-[10px] sm:text-xs font-medium text-center
+              ${space.type === 'tax' ? 'text-red-400' : 'text-yellow-400/90'}`}>
+              {space.type === 'tax' ? '-' : ''}{space.price}元
             </div>
           )}
         </div>
         
-        {/* 修改玩家标记显示 */}
         {players.length > 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-wrap gap-1.5 p-1.5 bg-black/40 rounded-lg backdrop-blur-sm">
@@ -105,27 +162,44 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         )}
       </div>
       
-      {/* Tooltip */}
       <div className="absolute hidden group-hover:block left-1/2 bottom-full mb-2 
                     -translate-x-1/2 w-48 sm:w-56 p-3 bg-gray-900/95 text-white 
                     text-xs sm:text-sm rounded-lg shadow-xl z-10 backdrop-blur-sm">
-        <p className="font-bold mb-2">{space.name}</p>
-        {space.price && <p className="text-yellow-400 mb-1">价格: {space.price} 元</p>}
+        <div className="flex items-center gap-2 mb-2">
+          <p className="font-bold">{space.name}</p>
+          {typeInfo && (
+            <span className={`${typeInfo.color} rounded-full px-2 py-0.5 text-xs`}>
+              {typeInfo.label}
+            </span>
+          )}
+        </div>
+        {space.price && (
+          <p className={`mb-1 ${space.type === 'tax' ? 'text-red-400' : 'text-yellow-400'}`}>
+            {space.type === 'tax' ? '支出: ' : '价格: '}{space.price} 元
+          </p>
+        )}
         <p className="text-gray-300">{space.description}</p>
+        {ownerInfo && (
+          <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-2">
+            <div 
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: ownerInfo.color }}
+            />
+            <span className="text-white/70">所有者：{ownerInfo.name}</span>
+          </div>
+        )}
       </div>
       
-      {/* 修改格子状态指示器 */}
-      <div className="absolute top-1 right-1 flex gap-1">
-        {space.owner !== undefined && space.owner !== null && players[space.owner] && (
+      {ownerInfo && (
+        <div className="absolute bottom-1 right-1 flex items-center gap-1 bg-black/30 
+                     rounded-full px-1.5 py-0.5">
           <div 
             className="w-2 h-2 rounded-full border border-white/50"
-            style={{ backgroundColor: getOwnerColor() }}
+            style={{ backgroundColor: ownerInfo.color }}
           />
-        )}
-        {isInMovePath && (
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-        )}
-      </div>
+          <span className="text-[10px] text-white/70">{ownerInfo.name}</span>
+        </div>
+      )}
     </div>
   );
 };

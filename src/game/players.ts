@@ -11,7 +11,7 @@ export const initialPlayers: Player[] = [
   {
     id: 1,
     name: '打工人',
-    color: '#FF6B6B',
+    color: '#FF4D4D',
     position: 0,
     money: 1500,
     properties: []
@@ -19,7 +19,7 @@ export const initialPlayers: Player[] = [
   {
     id: 2,
     name: '创业者',
-    color: '#4ECDC4',
+    color: '#4CAF50',
     position: 0,
     money: 1500,
     properties: []
@@ -27,7 +27,7 @@ export const initialPlayers: Player[] = [
   {
     id: 3,
     name: '产品经理',
-    color: '#45B7D1',
+    color: '#2196F3',
     position: 0,
     money: 1500,
     properties: []
@@ -35,7 +35,7 @@ export const initialPlayers: Player[] = [
   {
     id: 4,
     name: '独立开发',
-    color: '#96CEB4',
+    color: '#FFC107',
     position: 0,
     money: 1500,
     properties: []
