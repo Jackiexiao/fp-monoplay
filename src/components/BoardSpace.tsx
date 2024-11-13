@@ -35,6 +35,14 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
     return 'border-transparent hover:border-white/20 hover:bg-white/10';
   };
 
+  // 添加一个函数来安全地获取所有者的颜色
+  const getOwnerColor = () => {
+    if (space.owner !== undefined && space.owner !== null && players[space.owner]) {
+      return players[space.owner].color;
+    }
+    return 'transparent';
+  };
+
   return (
     <div 
       className={`
@@ -106,12 +114,12 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         <p className="text-gray-300">{space.description}</p>
       </div>
       
-      {/* 添加格子状态指示器 */}
+      {/* 修改格子状态指示器 */}
       <div className="absolute top-1 right-1 flex gap-1">
-        {space.owner !== undefined && space.owner !== null && (
+        {space.owner !== undefined && space.owner !== null && players[space.owner] && (
           <div 
             className="w-2 h-2 rounded-full border border-white/50"
-            style={{ backgroundColor: players[space.owner].color }}
+            style={{ backgroundColor: getOwnerColor() }}
           />
         )}
         {isInMovePath && (

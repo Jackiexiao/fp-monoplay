@@ -439,6 +439,8 @@ function App() {
             setSelectedSpace(null);
           }}
           onClose={() => setSelectedSpace(null)}
+          players={players}
+          currentPlayer={currentPlayer}
         />
       )}
     </div>
@@ -502,9 +504,17 @@ interface ActionPanelProps {
   position: number;
   onBuy: () => void;
   onClose: () => void;
+  players: Player[];
+  currentPlayer: number;
 }
 
-const ActionPanel: React.FC<ActionPanelProps> = ({ position, onBuy, onClose }) => {
+const ActionPanel: React.FC<ActionPanelProps> = ({ 
+  position, 
+  onBuy, 
+  onClose,
+  players,
+  currentPlayer 
+}) => {
   const space = boardSpaces[position];
   const currentPlayerObj = players[currentPlayer];
   const canBuy = space.type === 'property' && 
