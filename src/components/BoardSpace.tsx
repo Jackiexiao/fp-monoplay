@@ -11,6 +11,7 @@ interface BoardSpaceProps {
   isPreviousPosition: boolean;
   isCurrentPlayerSpace: boolean;
   isInMovePath?: boolean;
+  side: 'top' | 'right' | 'bottom' | 'left';
   onClick?: (position: number) => void;
 }
 
@@ -22,6 +23,7 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
   isPreviousPosition,
   isCurrentPlayerSpace,
   isInMovePath = false,
+  side,
   onClick 
 }) => {
   // 根据不同状态返回不同的边框样式
@@ -36,21 +38,36 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
   return (
     <div 
       className={`
-        relative bg-white/5 rounded-lg p-2 sm:p-3
+        relative bg-white/5 rounded-lg p-2
         transition-all duration-300 cursor-pointer
-        min-h-[70px] sm:min-h-[80px]
+        ${side === 'left' || side === 'right' 
+          ? 'min-h-[80px] sm:min-h-[90px]'
+          : 'min-h-[60px] sm:min-h-[70px]'
+        }
         border-2 ${getBorderStyle()}
       `}
       onClick={() => onClick?.(position)}
     >
       <div className="h-full flex flex-col justify-between">
-        <div className="text-white/90 font-medium text-xs sm:text-sm line-clamp-2">{space.name}</div>
+        <div className={`text-white/90 font-medium text-xs 
+          ${side === 'left' || side === 'right' ? 'line-clamp-2' : 'line-clamp-1'}`}>
+          {space.name}
+        </div>
         
-        <div className="flex flex-col items-center gap-1 my-1">
-          {space.icon && <space.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white/70" />}
+        <div className="flex flex-col items-center gap-0.5 my-0.5">
+          {space.icon && (
+            <space.icon className={`
+              ${side === 'left' || side === 'right' 
+                ? 'w-4 h-4 sm:w-5 sm:h-5' 
+                : 'w-3 h-3 sm:w-4 sm:h-4'
+              } 
+              text-white/70
+            `} 
+          />
+          )}
           {space.price && (
-            <div className="text-yellow-400/90 text-xs sm:text-sm font-medium">
-              {space.price} 元
+            <div className="text-yellow-400/90 text-[10px] sm:text-xs font-medium">
+              {space.price}元
             </div>
           )}
         </div>

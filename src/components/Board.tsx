@@ -35,9 +35,9 @@ const Board: React.FC<BoardProps> = ({
 
   const containerStyles = {
     top: 'w-full h-28',
-    right: 'h-full w-28',
+    right: 'h-full w-32',
     bottom: 'w-full h-28',
-    left: 'h-full w-28'
+    left: 'h-full w-32'
   };
   
   const getOrderedSpaces = () => {
@@ -69,6 +69,7 @@ const Board: React.FC<BoardProps> = ({
               isCurrentPosition={isCurrentPosition}
               isPreviousPosition={isPreviousPosition}
               isCurrentPlayerSpace={playersOnSpace.some(p => players.indexOf(p) === currentPlayer)}
+              side={side}
               onClick={() => onSpaceClick?.(position)}
             />
           );

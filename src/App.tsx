@@ -343,8 +343,8 @@ function App() {
           <div className="absolute top-8 left-8 right-8">
             <Board 
               players={players} 
-              startIndex={20} 
-              endIndex={30} 
+              startIndex={30} 
+              endIndex={40} 
               side="top" 
               currentPlayerPosition={getCurrentPlayerPosition()}
               previousPlayerPosition={lastMovePosition}
@@ -353,11 +353,11 @@ function App() {
             />
           </div>
           
-          <div className="absolute right-8 top-[15%] bottom-[15%] w-28">
+          <div className="absolute right-8 top-[15%] bottom-[15%] w-32">
             <Board 
               players={players} 
-              startIndex={31} 
-              endIndex={39} 
+              startIndex={21} 
+              endIndex={29} 
               side="right" 
               currentPlayerPosition={getCurrentPlayerPosition()}
               previousPlayerPosition={lastMovePosition}
@@ -379,7 +379,7 @@ function App() {
             />
           </div>
           
-          <div className="absolute left-8 top-[15%] bottom-[15%] w-28">
+          <div className="absolute left-8 top-[15%] bottom-[15%] w-32">
             <Board 
               players={players} 
               startIndex={11} 
