@@ -27,7 +27,7 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, reason, onRestart }) 
             onClick={onRestart}
             className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 
                      hover:from-purple-600 hover:to-indigo-600 text-white rounded-lg
-                     transition-all transform hover:scale-105 font-medium"
+                     transition-colors font-medium"
           >
             再玩一局
           </button>

@@ -107,28 +107,21 @@ function App() {
     for (let i = 1; i <= steps; i++) {
       const nextPos = (currentPos + i) % 40;
       path.push(nextPos);
-      
-      // 如果经过起点，添加视觉提示
-      if (nextPos < currentPos) {
-        showMessage('🎉 即将经过起点！');
-      }
     }
     
     setMovePath(path);
     
-    // 使用更短的间隔来展示移动过程
-    let step = 0;
-    const moveInterval = setInterval(() => {
-      if (step < path.length) {
-        setLastMovePosition(path[step]);
-        // 添加移动音效或视觉反馈
-        step++;
-      } else {
-        clearInterval(moveInterval);
-        setMovePath([]);
-        movePlayer(steps);
+    // 使用 Promise 来确保动画按顺序执行
+    const animateMove = async () => {
+      for (let i = 0; i < path.length; i++) {
+        setLastMovePosition(path[i]);
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
-    }, 200); // 缩短间隔时间
+      setMovePath([]);
+      movePlayer(steps);
+    };
+
+    animateMove();
   };
 
   const movePlayer = (steps: number) => {
@@ -198,11 +191,11 @@ function App() {
   };
 
   const handleBuyProperty = (position: number) => {
-    const space = boardSpaces[position] as Space & { owner?: number | null };
+    const space = boardSpaces[position];
     const currentPlayerObj = players[currentPlayer];
     
-    if (space.price && space.owner === null && currentPlayerObj.money >= space.price) {
-      // 更新格子所有权
+    if (space.type === 'property' && space.price && !space.owner && currentPlayerObj.money >= space.price) {
+      // 创建新的空间对象而不是直接修改
       boardSpaces[position] = {
         ...space,
         owner: currentPlayer
@@ -214,10 +207,17 @@ function App() {
         const player = newPlayers[currentPlayer];
         player.money -= space.price!;
         player.properties.push(position);
+        
+        // 显示金钱变化
+        showMoneyChange(currentPlayer, -space.price!);
+        showMessage(`🎉 成功购买 ${space.name}！`);
+        
         return newPlayers;
       });
-      
-      showMessage(`🎉 成功购买 ${space.name}！`);
+    } else {
+      if (currentPlayerObj.money < (space.price || 0)) {
+        showMessage('💔 资金不足，无法购买！');
+      }
     }
   };
 
@@ -503,26 +503,33 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
 };
 
 interface ActionPanelProps {
-  position: number | null;
+  position: number;
   onBuy: () => void;
   onClose: () => void;
 }
 
 const ActionPanel: React.FC<ActionPanelProps> = ({ position, onBuy, onClose }) => {
-  if (position === null) return null;
   const space = boardSpaces[position];
+  const currentPlayerObj = players[currentPlayer];
+  const canBuy = space.type === 'property' && 
+                 space.price && 
+                 !space.owner && 
+                 currentPlayerObj.money >= space.price;
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
                     bg-gray-900/95 rounded-lg p-4 backdrop-blur-sm
-                    border border-white/20 shadow-xl">
+                    border border-white/20 shadow-xl z-50">
       <h3 className="text-lg font-bold text-white mb-2">{space.name}</h3>
-      {space.price && (
+      {space.type === 'property' && (
         <div className="flex gap-2 mt-2">
           <button
             onClick={onBuy}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 
-                     text-white rounded-lg transition-colors"
+            disabled={!canBuy}
+            className={`px-4 py-2 rounded-lg transition-colors
+              ${canBuy 
+                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
           >
             购买 ({space.price} 元)
           </button>

@@ -12,7 +12,7 @@ const ChanceCard: React.FC<ChanceCardProps> = ({ card, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1 rounded-xl animate-bounce">
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1 rounded-xl">
         <div className="bg-gray-900 rounded-lg p-6 max-w-sm w-full text-center">
           <Sparkles className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
           <h3 className="text-2xl font-bold text-white mb-2">{card.title}</h3>
@@ -29,6 +29,6 @@ const ChanceCard: React.FC<ChanceCardProps> = ({ card, onClose }) => {
       </div>
     </div>
   );
-}
+};
 
 export default ChanceCard;
