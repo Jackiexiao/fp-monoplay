@@ -375,10 +375,10 @@ function App() {
           )}
         </header>
 
-        <div className="relative aspect-[4/3] w-full max-w-[1200px] mx-auto 
+        <div className="relative aspect-[4/3.2] w-full max-w-[1200px] mx-auto 
                       bg-white/5 rounded-2xl p-8 sm:p-10 border border-white/10
                       shadow-2xl backdrop-blur-sm">
-          <div className="absolute top-8 left-8 right-8">
+          <div className="absolute top-6 left-8 right-8">
             <Board 
               players={players} 
               startIndex={20} 
@@ -391,7 +391,7 @@ function App() {
             />
           </div>
           
-          <div className="absolute right-8 top-[15%] bottom-[15%] w-32">
+          <div className="absolute right-8 top-[12%] bottom-[12%] w-32">
             <Board 
               players={players} 
               startIndex={11} 
@@ -404,7 +404,7 @@ function App() {
             />
           </div>
           
-          <div className="absolute bottom-8 left-8 right-8">
+          <div className="absolute bottom-6 left-8 right-8">
             <Board 
               players={players} 
               startIndex={0} 
@@ -417,7 +417,7 @@ function App() {
             />
           </div>
           
-          <div className="absolute left-8 top-[15%] bottom-[15%] w-32">
+          <div className="absolute left-8 top-[12%] bottom-[12%] w-32">
             <Board 
               players={players} 
               startIndex={31} 
@@ -430,7 +430,7 @@ function App() {
             />
           </div>
 
-          <div className="absolute left-[30%] right-[30%] top-[30%] bottom-[30%]">
+          <div className="absolute left-[30%] right-[30%] top-[25%] bottom-[25%]">
             <div className="absolute inset-[25%] bg-white/10 backdrop-blur-sm rounded-full 
                             shadow-lg border border-white/20 flex items-center justify-center
                             transform hover:scale-105 transition-transform">

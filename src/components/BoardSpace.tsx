@@ -94,7 +94,7 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         relative bg-white/5 rounded-lg p-2
         transition-all duration-300 cursor-pointer
         ${side === 'left' || side === 'right' 
-          ? 'min-h-[80px] sm:min-h-[90px]'
+          ? 'min-h-[60px] sm:min-h-[70px]'
           : 'min-h-[60px] sm:min-h-[70px]'
         }
         border-2 ${getBorderStyle()}
@@ -118,49 +118,50 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         </div>
       )}
 
-      <div className="h-full flex flex-col justify-between pt-6">
+      <div className={`h-full flex ${
+        side === 'left' || side === 'right'
+          ? 'flex-row items-center gap-2 pt-6'
+          : 'flex-col justify-between pt-6'
+      }`}>
         <div className={`text-white/90 font-medium text-xs
           ${side === 'left' || side === 'right' 
-            ? 'line-clamp-2 text-center min-h-[2.5em]'
+            ? 'line-clamp-2 flex-1'
             : 'line-clamp-1 text-center'
           }`}>
           {space.name}
         </div>
         
-        <div className="flex flex-col items-center gap-0.5 my-0.5">
+        <div className={`flex ${
+          side === 'left' || side === 'right'
+            ? 'flex-col items-end min-w-[40px]'
+            : 'flex-col items-center'
+        } gap-0.5`}>
           {space.icon && (
-            <space.icon className={`
-              ${side === 'left' || side === 'right' 
-                ? 'w-4 h-4 sm:w-5 sm:h-5'
-                : 'w-4 h-4 sm:w-5 sm:h-5'
-              } 
-              text-white/70
-            `} 
-          />
+            <space.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white/70" />
           )}
           {space.price && (
-            <div className={`text-[10px] sm:text-xs font-medium text-center
+            <div className={`text-[10px] sm:text-xs font-medium
               ${space.type === 'tax' ? 'text-red-400' : 'text-yellow-400/90'}`}>
               {space.type === 'tax' ? '-' : ''}{space.price}元
             </div>
           )}
         </div>
-        
-        {players.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-wrap gap-1.5 p-1.5 bg-black/40 rounded-lg backdrop-blur-sm">
-              {players.map((player, idx) => (
-                <PlayerToken
-                  key={idx}
-                  player={player}
-                  isCurrentPlayer={isCurrentPosition}
-                  previousPosition={isPreviousPosition ? position : undefined}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
+      
+      {players.length > 0 && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-wrap gap-1.5 p-1.5 bg-black/40 rounded-lg backdrop-blur-sm">
+            {players.map((player, idx) => (
+              <PlayerToken
+                key={idx}
+                player={player}
+                isCurrentPlayer={isCurrentPosition}
+                previousPosition={isPreviousPosition ? position : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       
       <div className="absolute hidden group-hover:block left-1/2 bottom-full mb-2 
                     -translate-x-1/2 w-48 sm:w-56 p-3 bg-gray-900/95 text-white 
