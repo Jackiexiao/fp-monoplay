@@ -35,7 +35,7 @@ const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, setRolling, curre
       setIsAnimating(false);
       onRoll(finalDice[0] + finalDice[1]);
       setRolling(false);
-    }, 1000);
+    }, 500);
   };
 
   const Dice1Icon = diceIcons[dice[0] - 1];

@@ -8,7 +8,9 @@ interface BoardSpaceProps {
   position: number;
   players: Player[];
   isCurrentPosition: boolean;
-  previousPositions?: Record<number, number>;
+  isPreviousPosition: boolean;
+  isCurrentPlayerSpace: boolean;
+  isInMovePath?: boolean;
   onClick?: (position: number) => void;
 }
 
@@ -17,19 +19,27 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
   position, 
   players, 
   isCurrentPosition,
-  previousPositions = {},
+  isPreviousPosition,
+  isCurrentPlayerSpace,
+  isInMovePath = false,
   onClick 
 }) => {
+  // 根据不同状态返回不同的边框样式
+  const getBorderStyle = () => {
+    if (isCurrentPosition) return 'border-purple-400 bg-white/10 shadow-lg shadow-purple-400/20 animate-pulse';
+    if (isPreviousPosition) return 'border-yellow-400 bg-white/10 shadow-lg shadow-yellow-400/20';
+    if (isInMovePath) return 'border-green-400 bg-white/10 shadow-lg shadow-green-400/20 animate-pulse';
+    if (isCurrentPlayerSpace) return 'border-blue-400 bg-white/10 shadow-lg shadow-blue-400/20';
+    return 'border-transparent hover:border-white/20 hover:bg-white/10';
+  };
+
   return (
     <div 
       className={`
         relative bg-white/5 rounded-lg p-2 sm:p-3
         transition-all duration-300 cursor-pointer
         min-h-[70px] sm:min-h-[80px]
-        border-2 
-        ${isCurrentPosition 
-          ? 'border-purple-400 bg-white/10 shadow-lg shadow-purple-400/20' 
-          : 'border-transparent hover:border-white/20 hover:bg-white/10'}
+        border-2 ${getBorderStyle()}
       `}
       onClick={() => onClick?.(position)}
     >
@@ -54,7 +64,7 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
                   key={idx}
                   player={player}
                   isCurrentPlayer={isCurrentPosition}
-                  previousPosition={previousPositions[idx]}
+                  previousPosition={isPreviousPosition ? position : undefined}
                 />
               ))}
             </div>
@@ -69,6 +79,19 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
         <p className="font-bold mb-2">{space.name}</p>
         {space.price && <p className="text-yellow-400 mb-1">价格: {space.price} 元</p>}
         <p className="text-gray-300">{space.description}</p>
+      </div>
+      
+      {/* 添加格子状态指示器 */}
+      <div className="absolute top-1 right-1 flex gap-1">
+        {space.owner !== undefined && space.owner !== null && (
+          <div 
+            className="w-2 h-2 rounded-full border border-white/50"
+            style={{ backgroundColor: players[space.owner].color }}
+          />
+        )}
+        {isInMovePath && (
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        )}
       </div>
     </div>
   );

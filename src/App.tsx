@@ -8,6 +8,7 @@ import { Card, chanceCards } from './game/cards';
 import { boardSpaces } from './game/board';
 import RulesModal from './components/RulesModal';
 import WinnerModal from './components/WinnerModal';
+import BoardSpace from './components/BoardSpace';
 
 // 在文件顶部添加新的类型
 interface GameState {
@@ -30,6 +31,11 @@ function App() {
   });
   const [previousPositions, setPreviousPositions] = useState<Record<number, number>>({});
   const [selectedSpace, setSelectedSpace] = useState<number | null>(null);
+  const [lastMovePosition, setLastMovePosition] = useState<number | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [movePath, setMovePath] = useState<number[]>([]);
+  const [moneyChanges, setMoneyChanges] = useState<Record<number, number>>({});
 
   const showMessage = (message: string) => {
     setGameMessage(message);
@@ -94,6 +100,38 @@ function App() {
   };
 
   const handleTurn = (steps: number) => {
+    const currentPos = players[currentPlayer].position;
+    const path: number[] = [];
+    
+    // 生成移动路径，考虑经过起点的情况
+    for (let i = 1; i <= steps; i++) {
+      const nextPos = (currentPos + i) % 40;
+      path.push(nextPos);
+      
+      // 如果经过起点，添加视觉提示
+      if (nextPos < currentPos) {
+        showMessage('🎉 即将经过起点！');
+      }
+    }
+    
+    setMovePath(path);
+    
+    // 使用更短的间隔来展示移动过程
+    let step = 0;
+    const moveInterval = setInterval(() => {
+      if (step < path.length) {
+        setLastMovePosition(path[step]);
+        // 添加移动音效或视觉反馈
+        step++;
+      } else {
+        clearInterval(moveInterval);
+        setMovePath([]);
+        movePlayer(steps);
+      }
+    }, 200); // 缩短间隔时间
+  };
+
+  const movePlayer = (steps: number) => {
     setPreviousPositions(prev => ({
       ...prev,
       [currentPlayer]: players[currentPlayer].position
@@ -103,22 +141,29 @@ function App() {
       const newPlayers = [...prevPlayers];
       const player = newPlayers[currentPlayer];
       const oldPosition = player.position;
-      player.position = (player.position + steps) % 40;
+      const newPosition = (player.position + steps) % 40;
+      player.position = newPosition;
+      
+      // 记录最后移动的位置
+      setLastMovePosition(newPosition);
       
       // 经过起点获得奖励
-      if (player.position < oldPosition) {
+      if (newPosition < oldPosition) {
         player.money += 200;
+        showMoneyChange(currentPlayer, 200);
         showMessage('🎉 经过起点，获得 200 元奖励！');
       }
       
-      const space = boardSpaces[player.position];
+      const space = boardSpaces[newPosition];
       
       // 处理不同类型的格子
       if (space.type === 'chance') {
         setTimeout(() => handleChanceCard(), 500);
       } else if (space.type === 'tax') {
-        player.money -= space.price || 0;
-        showMessage(`💸 支付${space.price}元${space.name}`);
+        const taxAmount = space.price || 0;
+        player.money -= taxAmount;
+        showMoneyChange(currentPlayer, -taxAmount);
+        showMessage(`💸 支付${taxAmount}元${space.name}`);
       }
       
       // 检查胜利条件
@@ -153,10 +198,17 @@ function App() {
   };
 
   const handleBuyProperty = (position: number) => {
-    const space = boardSpaces[position];
+    const space = boardSpaces[position] as Space & { owner?: number | null };
     const currentPlayerObj = players[currentPlayer];
     
-    if (space.price && !space.owner && currentPlayerObj.money >= space.price) {
+    if (space.price && space.owner === null && currentPlayerObj.money >= space.price) {
+      // 更新格子所有权
+      boardSpaces[position] = {
+        ...space,
+        owner: currentPlayer
+      };
+      
+      // 更新玩家状态
       setPlayers(prevPlayers => {
         const newPlayers = [...prevPlayers];
         const player = newPlayers[currentPlayer];
@@ -164,6 +216,7 @@ function App() {
         player.properties.push(position);
         return newPlayers;
       });
+      
       showMessage(`🎉 成功购买 ${space.name}！`);
     }
   };
@@ -191,6 +244,62 @@ function App() {
     if (space.type === 'property' && !space.owner) {
       setSelectedSpace(position);
     }
+  };
+
+  const handleTradeRequest = (propertyPosition: number) => {
+    setSelectedProperty(propertyPosition);
+    setShowTradeModal(true);
+  };
+
+  const triggerSpecialEvent = () => {
+    const events = [
+      {
+        name: '创业补贴',
+        effect: () => {
+          const player = players[currentPlayer];
+          if (player.money < 500) {
+            setPlayers(prev => {
+              const newPlayers = [...prev];
+              newPlayers[currentPlayer].money += 200;
+              return newPlayers;
+            });
+            showMessage('🎁 获得创业补贴 200 元！');
+          }
+        }
+      },
+      {
+        name: '产品推广',
+        effect: () => {
+          const player = players[currentPlayer];
+          if (player.properties.length > 0) {
+            setPlayers(prev => {
+              const newPlayers = [...prev];
+              newPlayers[currentPlayer].money += player.properties.length * 50;
+              return newPlayers;
+            });
+            showMessage(`🚀 产品推广成功，获得 ${player.properties.length * 50} 元收入！`);
+          }
+        }
+      },
+      // 可以添加更多特殊事件
+    ];
+
+    const randomEvent = events[Math.floor(Math.random() * events.length)];
+    randomEvent.effect();
+  };
+
+  const showMoneyChange = (playerId: number, amount: number) => {
+    setMoneyChanges(prev => ({
+      ...prev,
+      [playerId]: amount
+    }));
+    
+    setTimeout(() => {
+      setMoneyChanges(prev => ({
+        ...prev,
+        [playerId]: 0
+      }));
+    }, 2000);
   };
 
   return (
@@ -238,18 +347,22 @@ function App() {
               endIndex={30} 
               side="top" 
               currentPlayerPosition={getCurrentPlayerPosition()}
-              previousPositions={previousPositions}
+              previousPlayerPosition={lastMovePosition}
+              currentPlayer={currentPlayer}
+              onSpaceClick={handleSpaceClick}
             />
           </div>
           
-          <div className="absolute right-8 top-[15%] bottom-[15%] w-24">
+          <div className="absolute right-8 top-[15%] bottom-[15%] w-28">
             <Board 
               players={players} 
               startIndex={31} 
               endIndex={39} 
               side="right" 
               currentPlayerPosition={getCurrentPlayerPosition()}
-              previousPositions={previousPositions}
+              previousPlayerPosition={lastMovePosition}
+              currentPlayer={currentPlayer}
+              onSpaceClick={handleSpaceClick}
             />
           </div>
           
@@ -260,18 +373,22 @@ function App() {
               endIndex={10} 
               side="bottom" 
               currentPlayerPosition={getCurrentPlayerPosition()}
-              previousPositions={previousPositions}
+              previousPlayerPosition={lastMovePosition}
+              currentPlayer={currentPlayer}
+              onSpaceClick={handleSpaceClick}
             />
           </div>
           
-          <div className="absolute left-8 top-[15%] bottom-[15%] w-24">
+          <div className="absolute left-8 top-[15%] bottom-[15%] w-28">
             <Board 
               players={players} 
               startIndex={11} 
               endIndex={19} 
               side="left" 
               currentPlayerPosition={getCurrentPlayerPosition()}
-              previousPositions={previousPositions}
+              previousPlayerPosition={lastMovePosition}
+              currentPlayer={currentPlayer}
+              onSpaceClick={handleSpaceClick}
             />
           </div>
 
@@ -291,21 +408,25 @@ function App() {
               className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"
               player={players[0]}
               isActive={currentPlayer === 0}
+              moneyChange={moneyChanges[0]}
             />
             <PlayerInfo
               className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2"
               player={players[1]}
               isActive={currentPlayer === 1}
+              moneyChange={moneyChanges[1]}
             />
             <PlayerInfo
               className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2"
               player={players[2]}
               isActive={currentPlayer === 2}
+              moneyChange={moneyChanges[2]}
             />
             <PlayerInfo
               className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2"
               player={players[3]}
               isActive={currentPlayer === 3}
+              moneyChange={moneyChanges[3]}
             />
           </div>
         </div>
@@ -332,9 +453,15 @@ interface PlayerInfoProps {
   player: Player;
   isActive: boolean;
   className?: string;
+  moneyChange?: number;
 }
 
-const PlayerInfo: React.FC<PlayerInfoProps> = ({ player, isActive, className = '' }) => {
+const PlayerInfo: React.FC<PlayerInfoProps> = ({ 
+  player, 
+  isActive, 
+  className = '',
+  moneyChange 
+}) => {
   return (
     <div className={`${className} transform transition-all duration-300 ${
       isActive ? 'scale-110 z-10' : 'scale-100'
@@ -356,6 +483,13 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({ player, isActive, className = '
             <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5">
               <span className="bg-yellow-400/20 p-1 rounded">💰</span>
               <span>{player.money.toLocaleString()} 元</span>
+              {moneyChange && (
+                <span className={`text-xs font-medium ${
+                  moneyChange > 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {moneyChange > 0 ? '+' : ''}{moneyChange}
+                </span>
+              )}
             </div>
             <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5 mt-1">
               <span className="bg-purple-400/20 p-1 rounded">🎮</span>
