@@ -28,7 +28,7 @@ export const createPropertySpace = (
   owner: null
 });
 
-export const boardSpaces: Space[] = [
+export let boardSpaces: Space[] = [
   { name: '起点', type: 'special', icon: Star, description: '每经过起点获得 200 元' },
   createPropertySpace('桌面壁纸', 100, Palette, '每天换一张'),
   { name: '产品评审', type: 'chance', icon: Brain, description: '老板觉得界面还要再改改' },
@@ -70,4 +70,11 @@ export const boardSpaces: Space[] = [
   createPropertySpace('宠物社区', 320, Heart, '铲屎官集合'),
   createPropertySpace('装修设计', 350, Palette, '家装设计灵感'),
   { name: '产品机遇', type: 'chance', icon: Brain, description: '新的市场机会' }
-]; 
+];
+
+export const updateSpaceOwner = (position: number, newOwner: number | null) => {
+  boardSpaces[position] = {
+    ...boardSpaces[position],
+    owner: newOwner
+  };
+}; 

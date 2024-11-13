@@ -51,10 +51,28 @@ function App() {
       const player = newPlayers[currentPlayer];
       
       if (card.effect === 'money') {
+        // 显示金钱变化
+        showMoneyChange(currentPlayer, card.value);
         player.money += card.value;
         if (player.money < 0) player.money = 0;
+        
+        // 显示消息
+        if (card.value > 0) {
+          showMessage(`💰 获得 ${card.value} 元！`);
+        } else {
+          showMessage(`💸 支付 ${Math.abs(card.value)} 元`);
+        }
       } else if (card.effect === 'move') {
-        player.position = (player.position + card.value + 40) % 40;
+        const oldPosition = player.position;
+        const newPosition = (player.position + card.value + 40) % 40;
+        player.position = newPosition;
+        
+        // 如果是后退，不需要经过起点奖励
+        if (card.value > 0 && newPosition < oldPosition) {
+          player.money += 200;
+          showMoneyChange(currentPlayer, 200);
+          showMessage('🎉 经过起点，获得 200 元奖励！');
+        }
       }
       
       return newPlayers;
@@ -170,14 +188,32 @@ function App() {
   };
 
   const restartGame = () => {
+    // 重置所有玩家状态
     setPlayers(initialPlayers);
     setCurrentPlayer(0);
+    
+    // 重置游戏状态
     setCurrentCard(null);
     setGameMessage('');
     setGameState({
       isGameOver: false,
       winner: null,
       reason: ''
+    });
+    
+    // 重置位置相关状态
+    setPreviousPositions({});
+    setSelectedSpace(null);
+    setLastMovePosition(null);
+    setSelectedProperty(null);
+    setShowTradeModal(false);
+    setMovePath([]);
+    
+    // 重置所有格子的所有者
+    boardSpaces.forEach((space, index) => {
+      if (space.type === 'property') {
+        updateSpaceOwner(index, null);
+      }
     });
   };
 
@@ -190,12 +226,9 @@ function App() {
     const space = boardSpaces[position];
     const currentPlayerObj = players[currentPlayer];
     
-    if (space.type === 'property' && space.price && !space.owner && currentPlayerObj.money >= space.price) {
-      // 创建新的空间对象而不是直接修改
-      boardSpaces[position] = {
-        ...space,
-        owner: currentPlayer
-      };
+    if (space.type === 'property' && space.price && space.owner === null && currentPlayerObj.money >= space.price) {
+      // 使用新的更新函数
+      updateSpaceOwner(position, currentPlayer);
       
       // 更新玩家状态
       setPlayers(prevPlayers => {
@@ -290,12 +323,7 @@ function App() {
       [playerId]: amount
     }));
     
-    setTimeout(() => {
-      setMoneyChanges(prev => ({
-        ...prev,
-        [playerId]: 0
-      }));
-    }, 2000);
+    // 移除自动清除的定时器，只在下一次金额变化时更新
   };
 
   return (
@@ -481,10 +509,10 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
             <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5">
               <span className="bg-yellow-400/20 p-1 rounded">💰</span>
               <span>{player.money.toLocaleString()} 元</span>
-              {moneyChange && (
+              {moneyChange !== 0 && moneyChange !== undefined && (
                 <span className={`text-xs font-medium ${
                   moneyChange > 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
+                } transition-all duration-300`}>
                   {moneyChange > 0 ? '+' : ''}{moneyChange}
                 </span>
               )}
