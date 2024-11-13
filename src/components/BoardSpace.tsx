@@ -48,9 +48,17 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
       `}
       onClick={() => onClick?.(position)}
     >
+      <div className="absolute top-0.5 left-0.5 text-[10px] text-white/60 bg-black/30 
+                    rounded px-1 font-mono">
+        {position}
+      </div>
+
       <div className="h-full flex flex-col justify-between">
-        <div className={`text-white/90 font-medium text-xs 
-          ${side === 'left' || side === 'right' ? 'line-clamp-2' : 'line-clamp-1'}`}>
+        <div className={`text-white/90 font-medium text-xs pt-3
+          ${side === 'left' || side === 'right' 
+            ? 'line-clamp-2 text-center' 
+            : 'line-clamp-1 text-center'
+          }`}>
           {space.name}
         </div>
         
@@ -58,15 +66,15 @@ const BoardSpace: React.FC<BoardSpaceProps> = ({
           {space.icon && (
             <space.icon className={`
               ${side === 'left' || side === 'right' 
-                ? 'w-4 h-4 sm:w-5 sm:h-5' 
-                : 'w-3 h-3 sm:w-4 sm:h-4'
+                ? 'w-5 h-5 sm:w-6 sm:h-6' 
+                : 'w-4 h-4 sm:w-5 sm:h-5'
               } 
               text-white/70
             `} 
           />
           )}
           {space.price && (
-            <div className="text-yellow-400/90 text-[10px] sm:text-xs font-medium">
+            <div className="text-yellow-400/90 text-[10px] sm:text-xs font-medium text-center">
               {space.price}元
             </div>
           )}

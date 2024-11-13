@@ -48,14 +48,26 @@ const Board: React.FC<BoardProps> = ({
     return orderedSpaces;
   };
   
+  const getPosition = (index: number) => {
+    switch (side) {
+      case 'top':
+        return startIndex + (endIndex - startIndex - index);
+      case 'right':
+        return startIndex + (endIndex - startIndex - index);
+      case 'bottom':
+        return startIndex + index;
+      case 'left':
+        return startIndex + index;
+      default:
+        return startIndex + index;
+    }
+  };
+  
   return (
     <div className={`${containerStyles[side]}`}>
       <div className={`grid ${sideStyles[side]} gap-1.5 h-full`}>
         {getOrderedSpaces().map((space, index) => {
-          const position = side === 'top' || side === 'right'
-            ? endIndex - index
-            : startIndex + index;
-          
+          const position = getPosition(index);
           const isCurrentPosition = position === currentPlayerPosition;
           const isPreviousPosition = position === previousPlayerPosition;
           const playersOnSpace = players.filter(p => p.position === position);
