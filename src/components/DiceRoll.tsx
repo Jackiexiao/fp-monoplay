@@ -31,6 +31,7 @@ const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, setRolling, curre
         Math.floor(Math.random() * 6) + 1,
         Math.floor(Math.random() * 6) + 1
       ];
+      console.log('🎲 骰子1:', finalDice[0], '骰子2:', finalDice[1], '总和:', finalDice[0] + finalDice[1]);
       setDice(finalDice);
       setIsAnimating(false);
       onRoll(finalDice[0] + finalDice[1]);

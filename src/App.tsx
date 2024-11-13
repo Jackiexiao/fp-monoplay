@@ -100,7 +100,9 @@ function App() {
   };
 
   const handleTurn = (steps: number) => {
+    console.log('🎲 骰子点数:', steps);
     const currentPos = players[currentPlayer].position;
+    console.log('🚩 当前位置:', currentPos);
     const path: number[] = [];
     
     // 生成移动路径，考虑经过起点的情况
@@ -109,6 +111,7 @@ function App() {
       path.push(nextPos);
     }
     
+    console.log('🛣️ 移动路径:', path);
     setMovePath(path);
     
     // 使用 Promise 来确保动画按顺序执行
@@ -118,59 +121,52 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
       setMovePath([]);
-      movePlayer(steps);
+      // 动画完成后只调用一次 movePlayer
+      const finalPosition = path[path.length - 1];
+      
+      // 更新玩家位置
+      setPlayers(prevPlayers => {
+        const newPlayers = [...prevPlayers];
+        const player = newPlayers[currentPlayer];
+        const oldPosition = player.position;
+        console.log('📍 移动前位置:', oldPosition);
+        player.position = finalPosition;
+        console.log('🏁 移动后位置:', finalPosition);
+        
+        // 经过起点获得奖励
+        if (finalPosition < oldPosition) {
+          player.money += 200;
+          showMoneyChange(currentPlayer, 200);
+          showMessage('🎉 经过起点，获得 200 元奖励！');
+        }
+        
+        const space = boardSpaces[finalPosition];
+        
+        // 处理不同类型的格子
+        if (space.type === 'chance') {
+          setTimeout(() => handleChanceCard(), 500);
+        } else if (space.type === 'tax') {
+          const taxAmount = space.price || 0;
+          player.money -= taxAmount;
+          showMoneyChange(currentPlayer, -taxAmount);
+          showMessage(`💸 支付${taxAmount}元${space.name}`);
+        }
+        
+        // 检查胜利条件
+        const gameResult = checkWinConditions(newPlayers);
+        if (gameResult.isGameOver) {
+          setGameState(gameResult);
+        }
+        
+        return newPlayers;
+      });
+      
+      if (!gameState.isGameOver) {
+        setCurrentPlayer((prev) => (prev + 1) % 4);
+      }
     };
 
     animateMove();
-  };
-
-  const movePlayer = (steps: number) => {
-    setPreviousPositions(prev => ({
-      ...prev,
-      [currentPlayer]: players[currentPlayer].position
-    }));
-
-    setPlayers(prevPlayers => {
-      const newPlayers = [...prevPlayers];
-      const player = newPlayers[currentPlayer];
-      const oldPosition = player.position;
-      const newPosition = (player.position + steps) % 40;
-      player.position = newPosition;
-      
-      // 记录最后移动的位置
-      setLastMovePosition(newPosition);
-      
-      // 经过起点获得奖励
-      if (newPosition < oldPosition) {
-        player.money += 200;
-        showMoneyChange(currentPlayer, 200);
-        showMessage('🎉 经过起点，获得 200 元奖励！');
-      }
-      
-      const space = boardSpaces[newPosition];
-      
-      // 处理不同类型的格子
-      if (space.type === 'chance') {
-        setTimeout(() => handleChanceCard(), 500);
-      } else if (space.type === 'tax') {
-        const taxAmount = space.price || 0;
-        player.money -= taxAmount;
-        showMoneyChange(currentPlayer, -taxAmount);
-        showMessage(`💸 支付${taxAmount}元${space.name}`);
-      }
-      
-      // 检查胜利条件
-      const gameResult = checkWinConditions(newPlayers);
-      if (gameResult.isGameOver) {
-        setGameState(gameResult);
-      }
-      
-      return newPlayers;
-    });
-    
-    if (!gameState.isGameOver) {
-      setCurrentPlayer((prev) => (prev + 1) % 4);
-    }
   };
 
   const restartGame = () => {
