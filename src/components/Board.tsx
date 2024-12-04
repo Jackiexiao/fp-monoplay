@@ -27,10 +27,10 @@ const Board: React.FC<BoardProps> = ({
   const spaces = boardSpaces.slice(startIndex, endIndex + 1);
   
   const sideStyles = {
-    top: 'grid-cols-11 grid-rows-1 w-full',
-    right: 'grid-cols-1 grid-rows-9 h-full gap-y-2',
-    bottom: 'grid-cols-11 grid-rows-1 w-full',
-    left: 'grid-cols-1 grid-rows-9 h-full gap-y-2'
+    top: 'grid-cols-6 grid-rows-1 w-full',
+    right: 'grid-cols-1 grid-rows-4 h-full gap-y-2',
+    bottom: 'grid-cols-6 grid-rows-1 w-full',
+    left: 'grid-cols-1 grid-rows-4 h-full gap-y-2'
   };
 
   const containerStyles = {
