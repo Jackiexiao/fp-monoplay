@@ -26,15 +26,15 @@ export const chanceCards: Card[] = [
   },
   {
     title: '市场调整',
-    description: '市场进入调整期，后退3格',
+    description: '市场进入调整期，损失 50 金币',
     effect: 'move',
-    value: -3
+    value: -50
   },
   {
     title: '牛市来临',
-    description: '市场进入牛市，向前冲刺3格',
+    description: '市场进入牛市， 狂赚300金币',
     effect: 'move',
-    value: 3
+    value: 300
   },
   {
     title: '投资讲座',

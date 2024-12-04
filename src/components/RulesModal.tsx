@@ -33,7 +33,7 @@ const RulesModal: React.FC<RulesModalProps> = ({ onClose }) => {
           <section>
             <h3 className="text-lg font-semibold text-amber-100 mb-3">投资成功的标准</h3>
             <ul className="space-y-2 list-disc list-inside">
-              <li>第一个资产达到 5000 金币的投资者获胜</li>
+              <li>第一个资产达到 4000 金币的投资者获胜</li>
               <li>当有投资者破产时，资产最多的投资者胜出</li>
               <li>成功投资 5 家或以上优质公司的投资者可以宣布胜利</li>
             </ul>

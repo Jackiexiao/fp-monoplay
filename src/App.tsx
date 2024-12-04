@@ -79,13 +79,13 @@ function App() {
   };
 
   const checkWinConditions = (players: Player[]): GameState => {
-    // 检查是否有玩家达到 5000 元
-    const richPlayer = players.find(p => p.money >= 5000);
+    // 检查是否有玩家达到 4000 元
+    const richPlayer = players.find(p => p.money >= 4000);
     if (richPlayer) {
       return {
         isGameOver: true,
         winner: richPlayer,
-        reason: `${richPlayer.name}的资产达到了5000元！`
+        reason: `${richPlayer.name}的资产达到了4000元！`
       };
     }
 
