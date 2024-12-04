@@ -10,32 +10,32 @@ export interface Player {
 export const initialPlayers: Player[] = [
   {
     id: 1,
-    name: '打工人',
-    color: '#FF4D4D',
+    name: '巴菲特',
+    color: '#FFB74D', // 温暖的橙色
     position: 0,
     money: 1500,
     properties: []
   },
   {
     id: 2,
-    name: '创业者',
-    color: '#4CAF50',
+    name: '芒格',
+    color: '#4CAF50', // 稳重的绿色
     position: 0,
     money: 1500,
     properties: []
   },
   {
     id: 3,
-    name: '产品经理',
-    color: '#2196F3',
+    name: '彼得·林奇',
+    color: '#42A5F5', // 智慧的蓝色
     position: 0,
     money: 1500,
     properties: []
   },
   {
     id: 4,
-    name: '独立开发',
-    color: '#FFC107',
+    name: '索罗斯',
+    color: '#AB47BC', // 神秘的紫色
     position: 0,
     money: 1500,
     properties: []

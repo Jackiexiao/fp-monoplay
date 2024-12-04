@@ -1,66 +1,57 @@
 export interface Card {
   title: string;
   description: string;
-  effect: 'money' | 'move' | 'special';
+  effect: 'money' | 'move';
   value: number;
-  message: string;
 }
 
 export const chanceCards: Card[] = [
   {
-    title: '股市牛市',
-    description: '股票价格上涨，获得收益',
+    title: '价值投资',
+    description: '巴菲特说："要在别人恐惧时贪婪"，获得200金币的投资机会',
     effect: 'money',
-    value: 300,
-    message: '股市上涨，获得 300 元收益！'
+    value: 200
   },
   {
-    title: '房地产升值',
-    description: '你的房产价值增加',
+    title: '市场波动',
+    description: '市场突然下跌，损失100金币',
     effect: 'money',
-    value: 250,
-    message: '房地产升值，资产增加 250 元！'
+    value: -100
   },
   {
-    title: '创业成功',
-    description: '你的创业项目获得成功',
+    title: '股息收益',
+    description: '你的投资获得丰厚的股息，收获150金币',
     effect: 'money',
-    value: 400,
-    message: '创业成功，赚取 400 元！'
+    value: 150
   },
   {
-    title: '市场危机',
-    description: '经济下滑，投资受损',
+    title: '市场调整',
+    description: '市场进入调整期，后退3格',
+    effect: 'move',
+    value: -3
+  },
+  {
+    title: '牛市来临',
+    description: '市场进入牛市，向前冲刺3格',
+    effect: 'move',
+    value: 3
+  },
+  {
+    title: '投资讲座',
+    description: '参加巴菲特的投资讲座，获得100金币的见解',
     effect: 'money',
-    value: -200,
-    message: '市场危机，损失 200 元！'
+    value: 100
   },
   {
-    title: '投资顾问建议',
-    description: 'AI 提供投资建议',
-    effect: 'special',
-    value: 0,
-    message: 'AI 建议你分散投资'
-  },
-  {
-    title: '财务规划',
-    description: '进行财务规划，优化资产配置',
-    effect: 'special',
-    value: 100,
-    message: '财务规划成功，资产增加 100 元！'
-  },
-  {
-    title: '税务审计',
-    description: '遭遇税务审计，需支付罚款',
+    title: '市场崩盘',
+    description: '遭遇金融危机，损失150金币',
     effect: 'money',
-    value: -150,
-    message: '税务审计，支付 150 元罚款！'
+    value: -150
   },
   {
-    title: '慈善捐赠',
-    description: '参与慈善活动，获得社会声誉',
-    effect: 'special',
-    value: 0,
-    message: '慈善捐赠，提升社会声誉'
+    title: '长期持有',
+    description: '坚持长期持有策略，获得180金币的收益',
+    effect: 'money',
+    value: 180
   }
 ];

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Rocket, Trophy, Info } from 'lucide-react';
+import { Beer, Trophy, Info } from 'lucide-react';
 import Board from './components/Board';
 import { Player, initialPlayers } from './game/players';
 import DiceRoll from './components/DiceRoll';
@@ -8,7 +8,6 @@ import { Card, chanceCards } from './game/cards';
 import { boardSpaces, updateSpaceOwner } from './game/board';
 import RulesModal from './components/RulesModal';
 import WinnerModal from './components/WinnerModal';
-import BoardSpace from './components/BoardSpace';
 
 // 在文件顶部添加新的类型
 interface GameState {
@@ -118,14 +117,17 @@ function App() {
   };
 
   const handleTurn = (steps: number) => {
+    if (gameState.isGameOver) return;
+    
     console.log('🎲 骰子点数:', steps);
     const currentPos = players[currentPlayer].position;
     console.log('🚩 当前位置:', currentPos);
     const path: number[] = [];
     
     // 生成移动路径，考虑经过起点的情况
+    const boardSize = boardSpaces.length;
     for (let i = 1; i <= steps; i++) {
-      const nextPos = (currentPos + i) % 40;
+      const nextPos = (currentPos + i) % boardSize;
       path.push(nextPos);
     }
     
@@ -139,7 +141,8 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
       setMovePath([]);
-      // 动画完成后只调用一次 movePlayer
+      
+      // 动画完成后处理最终位置
       const finalPosition = path[path.length - 1];
       
       // 更新玩家位置
@@ -155,19 +158,21 @@ function App() {
         if (finalPosition < oldPosition) {
           player.money += 200;
           showMoneyChange(currentPlayer, 200);
-          showMessage('🎉 经过起点，获得 200 元奖励！');
+          showMessage('🎉 经过酒馆入口，获得 200 金币投资红利！');
         }
         
         const space = boardSpaces[finalPosition];
         
         // 处理不同类型的格子
-        if (space.type === 'chance') {
+        if (space && space.type === 'chance') {
           setTimeout(() => handleChanceCard(), 500);
-        } else if (space.type === 'tax') {
+        } else if (space && space.type === 'tax') {
           const taxAmount = space.price || 0;
           player.money -= taxAmount;
           showMoneyChange(currentPlayer, -taxAmount);
-          showMessage(`💸 支付${taxAmount}元${space.name}`);
+          showMessage(`💸 支付${taxAmount}金币${space.name}`);
+        } else if (space && space.type === 'special') {
+          showMessage(`🎯 ${space.description}`);
         }
         
         // 检查胜利条件
@@ -179,8 +184,9 @@ function App() {
         return newPlayers;
       });
       
+      // 如果游戏没有结束，切换到下一个玩家
       if (!gameState.isGameOver) {
-        setCurrentPlayer((prev) => (prev + 1) % 4);
+        setCurrentPlayer((prev) => (prev + 1) % players.length);
       }
     };
 
@@ -297,7 +303,7 @@ function App() {
   const triggerSpecialEvent = () => {
     const events = [
       {
-        name: '创业补贴',
+        name: '价值投资',
         effect: () => {
           const player = players[currentPlayer];
           if (player.money < 500) {
@@ -306,21 +312,22 @@ function App() {
               newPlayers[currentPlayer].money += 200;
               return newPlayers;
             });
-            showMessage('🎁 获得创业补贴 200 元！');
+            showMessage(`🎯 ${player.name}发现了一个被低估的投资机会，获得200金币！`);
           }
         }
       },
       {
-        name: '产品推广',
+        name: '股息收益',
         effect: () => {
           const player = players[currentPlayer];
           if (player.properties.length > 0) {
+            const dividend = player.properties.length * 50;
             setPlayers(prev => {
               const newPlayers = [...prev];
-              newPlayers[currentPlayer].money += player.properties.length * 50;
+              newPlayers[currentPlayer].money += dividend;
               return newPlayers;
             });
-            showMessage(`🚀 产品推广成功，获得 ${player.properties.length * 50} 元收入！`);
+            showMessage(`💰 ${player.name}的投资组合带来${dividend}金币的股息收益！`);
           }
         }
       },
@@ -341,34 +348,34 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-800 to-blue-900 p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-900 via-orange-800 to-yellow-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-            <div className="bg-white/10 p-2 rounded-lg">
-              <Rocket className="w-8 h-8 sm:w-10 sm:h-10" />
+          <h1 className="text-3xl sm:text-4xl font-bold text-amber-100 mb-3 flex items-center justify-center gap-3">
+            <div className="bg-amber-800/50 p-2 rounded-lg">
+              <Beer className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
-            创业大富翁
-            <div className="bg-white/10 p-2 rounded-lg">
+            奥马哈投资酒馆
+            <div className="bg-amber-800/50 p-2 rounded-lg">
               <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
           </h1>
-          <p className="text-sm sm:text-base text-purple-200 mb-3">
-            打工人的创业之旅，今天你想做什么小产品？
+          <p className="text-sm sm:text-base text-amber-200 mb-3">
+            在这里，让我们一起探索巴菲特的投资智慧，成为下一个股神！
           </p>
           <button
             onClick={() => setShowRules(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 
-                     hover:bg-white/15 rounded-full text-sm text-white/90
-                     transition-all duration-300 border border-white/10
-                     hover:border-white/20"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-800/50 
+                     hover:bg-amber-700/50 rounded-full text-sm text-amber-100
+                     transition-all duration-300 border border-amber-700/50
+                     hover:border-amber-600/50"
           >
             <Info className="w-4 h-4" />
-            游戏规则
+            投资规则
           </button>
           {gameMessage && (
-            <div className="mt-4 text-base sm:text-lg font-semibold text-yellow-300
-                          bg-yellow-400/10 border border-yellow-400/20 rounded-lg
+            <div className="mt-4 text-base sm:text-lg font-semibold text-amber-300
+                          bg-amber-800/30 border border-amber-700/50 rounded-lg
                           py-2 px-4 inline-block">
               {gameMessage}
             </div>
@@ -376,7 +383,7 @@ function App() {
         </header>
 
         <div className="relative aspect-[4/3.2] w-full max-w-[1200px] mx-auto 
-                      bg-white/5 rounded-2xl p-8 sm:p-10 border border-white/10
+                      bg-amber-900/30 rounded-2xl p-8 sm:p-10 border border-amber-800/50
                       shadow-2xl backdrop-blur-sm">
           <div className="absolute top-6 left-8 right-8">
             <Board 
@@ -431,14 +438,13 @@ function App() {
           </div>
 
           <div className="absolute left-[30%] right-[30%] top-[25%] bottom-[25%]">
-            <div className="absolute inset-[25%] bg-white/10 backdrop-blur-sm rounded-full 
-                            shadow-lg border border-white/20 flex items-center justify-center
+            <div className="absolute inset-[25%] bg-amber-900/30 backdrop-blur-sm rounded-full 
+                            shadow-lg border border-amber-800/50 flex items-center justify-center
                             transform hover:scale-105 transition-transform">
               <DiceRoll 
                 onRoll={handleTurn}
-                disabled={diceRolling}
-                setRolling={setDiceRolling}
-                currentPlayer={currentPlayer}
+                disabled={diceRolling || gameState.isGameOver}
+                className="w-24 h-24 text-amber-200"
               />
             </div>
 
@@ -470,20 +476,43 @@ function App() {
         </div>
       </div>
 
-      <ChanceCard card={currentCard} onClose={() => setCurrentCard(null)} />
-      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
-      {gameState.isGameOver && <WinnerModal winner={gameState.winner} reason={gameState.reason} onRestart={restartGame} />}
+      {gameState.isGameOver && (
+        <WinnerModal
+          winner={gameState.winner}
+          reason={gameState.reason}
+          onRestart={restartGame}
+        />
+      )}
+
       {selectedSpace !== null && (
         <ActionPanel
           position={selectedSpace}
-          onBuy={() => {
-            handleBuyProperty(selectedSpace);
-            setSelectedSpace(null);
-          }}
+          onBuy={() => handleBuyProperty(selectedSpace)}
           onClose={() => setSelectedSpace(null)}
           players={players}
           currentPlayer={currentPlayer}
         />
+      )}
+
+      {currentCard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-amber-950/95 rounded-xl p-6 max-w-md w-full text-center
+                        border border-amber-800/50 shadow-xl backdrop-blur-sm">
+            <h3 className="text-xl font-bold text-amber-100 mb-3">{currentCard.title}</h3>
+            <p className="text-amber-200 mb-4">{currentCard.description}</p>
+            <button
+              onClick={() => setCurrentCard(null)}
+              className="px-4 py-2 bg-amber-800 hover:bg-amber-700 
+                       text-amber-100 rounded-lg transition-colors"
+            >
+              明白了
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showRules && (
+        <RulesModal onClose={() => setShowRules(false)} />
       )}
     </div>
   );
@@ -513,19 +542,19 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
     }`}>
       <div className={`p-4 rounded-xl ${
         isActive 
-          ? 'bg-white/20 ring-2 ring-purple-400 shadow-lg' 
-          : 'bg-white/10 hover:bg-white/15'
+          ? 'bg-amber-900/20 ring-2 ring-amber-600 shadow-lg' 
+          : 'bg-amber-900/10 hover:bg-amber-900/15'
       } backdrop-blur-sm transition-all min-w-[160px] sm:min-w-[180px]
-      border border-white/10 hover:border-white/20 relative group`}>
+      border border-amber-800/50 hover:border-amber-700/50 relative group`}>
         <div className="flex items-center gap-3">
           <div 
             className={`w-8 h-8 rounded-full shadow-lg border-2 
-                      ${isActive ? 'border-purple-400' : 'border-white/50'}`}
+                      ${isActive ? 'border-amber-600' : 'border-amber-400/50'}`}
             style={{ backgroundColor: player.color }}
           />
           <div>
-            <div className="text-sm sm:text-base font-medium text-white mb-0.5">{player.name}</div>
-            <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5">
+            <div className="text-sm sm:text-base font-medium text-amber-100 mb-0.5">{player.name}</div>
+            <div className="text-xs sm:text-sm text-amber-200 flex items-center gap-1.5">
               <span className="bg-yellow-400/20 p-1 rounded">💰</span>
               <span>{player.money.toLocaleString()} 元</span>
               {moneyChange !== 0 && moneyChange !== undefined && (
@@ -536,8 +565,8 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
                 </span>
               )}
             </div>
-            <div className="text-xs sm:text-sm text-purple-200 flex items-center gap-1.5 mt-1 cursor-help">
-              <span className="bg-purple-400/20 p-1 rounded">🎮</span>
+            <div className="text-xs sm:text-sm text-amber-200 flex items-center gap-1.5 mt-1 cursor-help">
+              <span className="bg-amber-400/20 p-1 rounded">🎮</span>
               <span>{player.properties.length} 个产品</span>
             </div>
           </div>
@@ -550,7 +579,7 @@ const PlayerInfo: React.FC<PlayerInfoProps> = ({
           {getOwnedProperties().length > 0 ? (
             <ul className="space-y-1">
               {getOwnedProperties().map((property, index) => (
-                <li key={index} className="text-xs text-purple-200 flex items-center justify-between">
+                <li key={index} className="text-xs text-amber-200 flex items-center justify-between">
                   <span>{property.name}</span>
                   <span className="text-yellow-400">{property.price} 元</span>
                 </li>
@@ -590,8 +619,8 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
                     bg-gray-900/95 rounded-lg p-4 backdrop-blur-sm
-                    border border-white/20 shadow-xl z-50">
-      <h3 className="text-lg font-bold text-white mb-2">{space.name}</h3>
+                    border border-amber-800/50 shadow-xl z-50">
+      <h3 className="text-lg font-bold text-amber-100 mb-2">{space.name}</h3>
       {space.type === 'property' && (
         <div className="flex gap-2 mt-2">
           <button
@@ -599,7 +628,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
             disabled={!canBuy}
             className={`px-4 py-2 rounded-lg transition-colors
               ${canBuy 
-                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                ? 'bg-amber-600 hover:bg-amber-700 text-amber-100' 
                 : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
           >
             购买 ({space.price} 元)
@@ -607,7 +636,7 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 
-                     text-white rounded-lg transition-colors"
+                     text-amber-100 rounded-lg transition-colors"
           >
             取消
           </button>
@@ -616,5 +645,38 @@ const ActionPanel: React.FC<ActionPanelProps> = ({
     </div>
   );
 };
+
+const events = [
+  {
+    name: '价值投资',
+    effect: () => {
+      const player = players[currentPlayer];
+      if (player.money < 500) {
+        setPlayers(prev => {
+          const newPlayers = [...prev];
+          newPlayers[currentPlayer].money += 200;
+          return newPlayers;
+        });
+        showMessage(`🎯 ${player.name}发现了一个被低估的投资机会，获得200金币！`);
+      }
+    }
+  },
+  {
+    name: '股息收益',
+    effect: () => {
+      const player = players[currentPlayer];
+      if (player.properties.length > 0) {
+        const dividend = player.properties.length * 50;
+        setPlayers(prev => {
+          const newPlayers = [...prev];
+          newPlayers[currentPlayer].money += dividend;
+          return newPlayers;
+        });
+        showMessage(`💰 ${player.name}的投资组合带来${dividend}金币的股息收益！`);
+      }
+    }
+  },
+  // 可以添加更多特殊事件
+];
 
 export default App;

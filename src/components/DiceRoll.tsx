@@ -4,18 +4,18 @@ import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6 } from 'lucide-react';
 interface DiceRollProps {
   onRoll: (steps: number) => void;
   disabled: boolean;
-  setRolling: (rolling: boolean) => void;
-  currentPlayer: number;
+  className?: string;
 }
 
 const diceIcons = [Dice1, Dice2, Dice3, Dice4, Dice5, Dice6];
 
-const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, setRolling, currentPlayer }) => {
+const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, className }) => {
   const [dice, setDice] = useState([1, 1]);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const rollDice = () => {
-    setRolling(true);
+    if (disabled || isAnimating) return;
+    
     setIsAnimating(true);
     
     const rollInterval = setInterval(() => {
@@ -31,11 +31,9 @@ const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, setRolling, curre
         Math.floor(Math.random() * 6) + 1,
         Math.floor(Math.random() * 6) + 1
       ];
-      console.log('🎲 骰子1:', finalDice[0], '骰子2:', finalDice[1], '总和:', finalDice[0] + finalDice[1]);
       setDice(finalDice);
       setIsAnimating(false);
       onRoll(finalDice[0] + finalDice[1]);
-      setRolling(false);
     }, 500);
   };
 
@@ -43,26 +41,21 @@ const DiceRoll: React.FC<DiceRollProps> = ({ onRoll, disabled, setRolling, curre
   const Dice2Icon = diceIcons[dice[1] - 1];
 
   return (
-    <div className="bg-white/10 rounded-xl p-3 sm:p-4">
-      <div className={`flex justify-center gap-3 sm:gap-4 mb-3 sm:mb-4 ${isAnimating ? 'animate-bounce' : ''}`}>
+    <button
+      onClick={rollDice}
+      disabled={disabled || isAnimating}
+      className={`${className} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'} 
+                  transition-all duration-200 ease-in-out`}
+    >
+      <div className={`flex gap-2 ${isAnimating ? 'animate-bounce' : ''}`}>
         <div className="transform hover:rotate-12 transition-transform">
-          <Dice1Icon className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+          <Dice1Icon />
         </div>
         <div className="transform hover:-rotate-12 transition-transform">
-          <Dice2Icon className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+          <Dice2Icon />
         </div>
       </div>
-      <button
-        onClick={rollDice}
-        disabled={disabled}
-        className="w-full py-1.5 sm:py-2 px-3 sm:px-4 bg-gradient-to-r from-purple-600 to-indigo-600 
-                 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-600 
-                 disabled:to-gray-700 text-white rounded-lg transition-all transform
-                 hover:scale-105 active:scale-95 text-sm sm:text-base font-medium"
-      >
-        {disabled ? '等待中...' : '掷骰子'}
-      </button>
-    </div>
+    </button>
   );
 };
 
